@@ -46,31 +46,26 @@ public class App {
             int totalBytesImagen = numFilas * numColumnas * 3;
             int totalBytesRespuesta = numFilas * numColumnas;
             int totalBytesFiltros = 9 * 4 * 2; // Dos filtros de 3x3 enteros (4 bytes por entero)
-        
-            // Cálculo del total de referencias necesarias
-            // TODO: CALCULAR BIEN
-            int refTotal = 16 + 17 ;
-
+            
+            int refTotal = (totalBytesImagen + totalBytesRespuesta + totalBytesFiltros)*3;
             int paginasImagen = (totalBytesImagen + tamanoPagina - 1) / tamanoPagina;
             int paginasRespuesta = (totalBytesRespuesta + tamanoPagina - 1) / tamanoPagina;
             int paginasFiltros = (totalBytesFiltros + tamanoPagina - 1) / tamanoPagina;
-            int pagsVirtuales = paginasImagen + paginasRespuesta + paginasFiltros;
-    
+            int paginasTotales = paginasImagen + paginasRespuesta + paginasFiltros;
+            
             // Escribimos información inicial
-            output.write("P=" + tamanoPagina + "\n");
+            output.write("TP=" + tamanoPagina + "\n");
             output.write("NF=" + numFilas + "\n");
             output.write("NC=" + numColumnas + "\n");
             output.write("NR=" + refTotal + "\n");
-            output.write("NP=" + pagsVirtuales + "\n");
-    
+            output.write("NP=" + paginasTotales + "\n");
+            
             int columnaActual = 0;
             String[] coloresRGB = {"R", "G", "B"};
             int desplaz = 0;
-    
-            // Escribir las primeras 16 referencias ARREGLAR 
-            //TODO: Arreglar los mensajes y el orden de las referencias;
-            int contador;
-            for (contador = 0; contador < 16; contador++) {
+            
+            // Escribir las primeras 16 referencias
+            for (int contador = 0; contador < 16; contador++) {
                 String color = coloresRGB[contador % 3];
                 if (contador % 3 == 0 && contador != 0) {
                     columnaActual++;
@@ -78,24 +73,24 @@ public class App {
                 output.write("Imagen[0][" + columnaActual + "]." + color + ",0," + desplaz + ",R\n");
                 desplaz++;
             }
-    
+            
             int filaActual = 0;
             int paginaActual = 0;
             int posEnMensaje = 0;
-            int pagMensaje = (3 * img.ancho * img.alto + tamanoPagina - 1) / tamanoPagina;
-    
-            int contadorImagen = contador;
+            int pagMensaje = (totalBytesImagen + tamanoPagina - 1) / tamanoPagina;
+            
+            int contadorImagen = 16;
             int indiceMensaje = 0;
             boolean continuar = false;
-    
+            
             // Escribir referencias del mensaje y colores
-            while (contador < refTotal) {
+            while (contadorImagen < refTotal) {
                 output.write("Mensaje[" + indiceMensaje + "]," + pagMensaje + "," + posEnMensaje + ",W\n");
-                contador++;
+                contadorImagen++;
                 for (int i = 0; i < 16; i++) {
                     if (continuar) {
                         output.write("Mensaje[" + indiceMensaje + "]," + pagMensaje + "," + posEnMensaje + ",W\n");
-                        contador++;
+                        contadorImagen++;
                         continuar = false;
                     } else {
                         String color = coloresRGB[contadorImagen % 3];
@@ -107,33 +102,43 @@ public class App {
                             }
                         }
                         output.write("Imagen[" + filaActual + "][" + columnaActual + "]." + color + "," + paginaActual + "," + desplaz + ",R\n");
-    
+                        
                         desplaz++;
                         if (desplaz >= tamanoPagina) {
                             paginaActual++;
                             desplaz = 0;
                         }
-                        contador++;
                         contadorImagen++;
                         continuar = true;
                     }
                 }
-    
+                
                 posEnMensaje++;
                 indiceMensaje++;
-    
+                
                 if (posEnMensaje >= tamanoPagina) {
                     posEnMensaje = 0;
                     pagMensaje++;
                 }
+                
+                // Acceder a los filtros
+                output.write("FiltroX,0,0,R\n");
+                output.write("FiltroY,0,0,R\n");
+                contadorImagen += 2;
+                
+                // Escribir en la matriz de respuesta
+                int offsetResp = (filaActual * numColumnas + columnaActual);
+                int pagResp = offsetResp / tamanoPagina;
+                output.write("Respuesta[" + filaActual + "][" + columnaActual + "]," + pagResp + "," + (offsetResp % tamanoPagina) + ",W\n");
+                contadorImagen++;
             }
-    
+            
             System.out.println("Referencias generadas y guardadas en 'referencias.txt'.");
-
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }  
     }
+    
 
     public static void simularPaginacion(String archivoReferencias, int numMarcos) {
         PageTable pageTable = new PageTable(numMarcos);
