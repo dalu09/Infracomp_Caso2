@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.Scanner;
 
 public class App {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
         Imagen imagenModificada = null;
 
@@ -39,107 +39,64 @@ public class App {
         }
     }
 
-    public static void crearReferencias(Imagen img, int tamanoPagina) {
+    public static void crearReferencias(Imagen img, int tamanoPagina) throws IOException {
         try (BufferedWriter output = new BufferedWriter(new FileWriter("referencias.txt"))) {
             int numFilas = img.alto;
             int numColumnas = img.ancho;
             int totalBytesImagen = numFilas * numColumnas * 3;
-            int totalBytesRespuesta = numFilas * numColumnas;
-            int totalBytesFiltros = 9 * 4 * 2; // Dos filtros de 3x3 enteros (4 bytes por entero)
-            
-            int refTotal = (totalBytesImagen + totalBytesRespuesta + totalBytesFiltros)*3;
-            int paginasImagen = (totalBytesImagen + tamanoPagina - 1) / tamanoPagina;
-            int paginasRespuesta = (totalBytesRespuesta + tamanoPagina - 1) / tamanoPagina;
-            int paginasFiltros = (totalBytesFiltros + tamanoPagina - 1) / tamanoPagina;
-            int paginasTotales = paginasImagen + paginasRespuesta + paginasFiltros;
-            
-            // Escribimos información inicial
+            int totalBytesFiltros = numFilas * numColumnas * 3 * 2; 
+            int totalBytesRespuesta = totalBytesFiltros + totalBytesImagen;
+    
+            int refTotal = (36 * (numFilas - 2) * (numColumnas - 2))*2;
+            int paginasTotales = (refTotal + tamanoPagina - 1) / tamanoPagina;
+    
             output.write("TP=" + tamanoPagina + "\n");
             output.write("NF=" + numFilas + "\n");
             output.write("NC=" + numColumnas + "\n");
             output.write("NR=" + refTotal + "\n");
             output.write("NP=" + paginasTotales + "\n");
-            
-            int columnaActual = 0;
+    
+            int[] paginaVirtual = {0};  // Usamos un array para que sea modificable dentro del método
+            int[] desplaz = {0};
+    
             String[] coloresRGB = {"R", "G", "B"};
-            int desplaz = 0;
-            
-            // Escribir las primeras 16 referencias
-            for (int contador = 0; contador < 16; contador++) {
-                String color = coloresRGB[contador % 3];
-                if (contador % 3 == 0 && contador != 0) {
-                    columnaActual++;
-                }
-                output.write("Imagen[0][" + columnaActual + "]." + color + ",0," + desplaz + ",R\n");
-                desplaz++;
-            }
-            
-            int filaActual = 0;
-            int paginaActual = 0;
-            int posEnMensaje = 0;
-            int pagMensaje = (totalBytesImagen + tamanoPagina - 1) / tamanoPagina;
-            
-            int contadorImagen = 16;
-            int indiceMensaje = 0;
-            boolean continuar = false;
-            
-            // Escribir referencias del mensaje y colores
-            while (contadorImagen < refTotal) {
-                output.write("Mensaje[" + indiceMensaje + "]," + pagMensaje + "," + posEnMensaje + ",W\n");
-                contadorImagen++;
-                for (int i = 0; i < 16; i++) {
-                    if (continuar) {
-                        output.write("Mensaje[" + indiceMensaje + "]," + pagMensaje + "," + posEnMensaje + ",W\n");
-                        contadorImagen++;
-                        continuar = false;
-                    } else {
-                        String color = coloresRGB[contadorImagen % 3];
-                        if (contadorImagen % 3 == 0) {
-                            columnaActual++;
-                            if (columnaActual >= img.ancho) {
-                                filaActual++;
-                                columnaActual = 0;
+    
+            for (int i = 1; i < numFilas - 1; i++) {
+                for (int j = 1; j < numColumnas - 1; j++) {
+                    for (int ki = -1; ki <= 1; ki++) {
+                        for (int kj = -1; kj <= 1; kj++) {
+                            for (String color : coloresRGB) {
+                                actualizarPagina(output, "Imagen[" + (i - 1) + "][" + j + "]." + color + ",R", tamanoPagina, paginaVirtual, desplaz);
+                            }
+    
+                            for (String color : coloresRGB) {
+                                actualizarPagina(output, "SOBEL_X[" + (i - 1) + "][" + j + "]." + color + ",W", tamanoPagina, paginaVirtual, desplaz);
+                            }
+    
+                            for (String color : coloresRGB) {
+                                actualizarPagina(output, "SOBEL_Y[" + (i - 1) + "][" + j + "]." + color + ",W", tamanoPagina, paginaVirtual, desplaz);
                             }
                         }
-                        output.write("Imagen[" + filaActual + "][" + columnaActual + "]." + color + "," + paginaActual + "," + desplaz + ",R\n");
-                        
-                        desplaz++;
-                        if (desplaz >= tamanoPagina) {
-                            paginaActual++;
-                            desplaz = 0;
-                        }
-                        contadorImagen++;
-                        continuar = true;
+                    }
+    
+                    for (String color : coloresRGB) {
+                        actualizarPagina(output, "Rta[" + i + "][" + j + "]." + color + ",W", tamanoPagina, paginaVirtual, desplaz);
                     }
                 }
-                
-                posEnMensaje++;
-                indiceMensaje++;
-                
-                if (posEnMensaje >= tamanoPagina) {
-                    posEnMensaje = 0;
-                    pagMensaje++;
-                }
-                
-                // Acceder a los filtros
-                output.write("FiltroX,0,0,R\n");
-                output.write("FiltroY,0,0,R\n");
-                contadorImagen += 2;
-                
-                // Escribir en la matriz de respuesta
-                int offsetResp = (filaActual * numColumnas + columnaActual);
-                int pagResp = offsetResp / tamanoPagina;
-                output.write("Respuesta[" + filaActual + "][" + columnaActual + "]," + pagResp + "," + (offsetResp % tamanoPagina) + ",W\n");
-                contadorImagen++;
             }
-            
-            System.out.println("Referencias generadas y guardadas en 'referencias.txt'.");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }  
+        }
     }
     
-
+    
+    private static void actualizarPagina(BufferedWriter output, String referencia, int tamanoPagina, int[] paginaVirtual, int[] desplaz) throws IOException {
+        output.write(referencia + ", " + paginaVirtual[0] + "," + desplaz[0] + "\n");
+        desplaz[0]++;
+        if (desplaz[0] == tamanoPagina) {
+            desplaz[0] = 0;
+            paginaVirtual[0]++;
+        }
+    }
+    
     public static void simularPaginacion(String archivoReferencias, int numMarcos) {
         PageTable pageTable = new PageTable(numMarcos);
         FaultsCounter faultsCounter = new FaultsCounter();
