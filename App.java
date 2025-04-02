@@ -59,8 +59,8 @@ public class App {
     
         switch (origen) {
             case "Imagen": {
-                numPagina = (3 * i + j + rgb.get(argAdicional)) / tam;
-                desplazamiento = (3 * i + j + rgb.get(argAdicional)) % tam;
+                numPagina = (3 * i * NC + 3 * j + rgb.get(argAdicional)) / tam;
+                desplazamiento = (3 * i * NC + 3 * j + rgb.get(argAdicional)) % tam;
                 break;
             }
             case "SOBEL_X": {
@@ -74,8 +74,8 @@ public class App {
                 break;
             }
             case "Rta": {
-                numPagina = (sobelYR + 3 * i + j + rgb.get(argAdicional)) / tam;
-                desplazamiento = (sobelYR + 3 * i + j + rgb.get(argAdicional)) % tam;
+                numPagina = (sobelYR + 3 * i * NC + 3 * j + rgb.get(argAdicional)) / tam;
+                desplazamiento = (sobelYR + 3 * i * NC + 3 * j + rgb.get(argAdicional)) % tam;
                 break;
             }
             default: {
