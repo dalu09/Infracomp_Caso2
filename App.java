@@ -49,9 +49,9 @@ public class App {
     
         int imagenR = 3 * NF * NC;
         int sobelXR = imagenR + 36;
-        int sobelYR = imagenR + sobelXR + 36;
+        int sobelYR = sobelXR + 36;
     
-        int numPagina, desplazamiento;
+        int numPagina, desplazamiento, nBytes;
     
         Map<String, Integer> rgb = new HashMap<>();
         rgb.put(".r", 0);
@@ -60,23 +60,30 @@ public class App {
     
         switch (origen) {
             case "Imagen": {
-                numPagina = (3 * i * NC + 3 * j + rgb.get(argAdicional)) / tam;
-                desplazamiento = (3 * i * NC + 3 * j + rgb.get(argAdicional)) % tam;
+                nBytes = 3 * i * NC + 3 * j + rgb.get(argAdicional);
+                numPagina = nBytes / tam;
+                desplazamiento = nBytes % tam;
                 break;
             }
             case "SOBEL_X": {
-                numPagina = (imagenR + 4 * i + j) / tam;
-                desplazamiento = (imagenR + 4 * i + j) % tam;
+                nBytes = imagenR + 4 * 3 * i + 4 * j;
+                numPagina = nBytes / tam;
+                desplazamiento = nBytes % tam;
                 break;
             }
             case "SOBEL_Y": {
-                numPagina = (sobelXR + 4 * i + j) / tam;
-                desplazamiento = (sobelXR + 4 * i + j) % tam;
+                nBytes = sobelXR + 4 * 3* i + 4 * j;
+                numPagina = nBytes / tam;
+                desplazamiento = nBytes % tam;
                 break;
             }
             case "Rta": {
-                numPagina = (sobelYR + 3 * i * NC + 3 * j + rgb.get(argAdicional)) / tam;
-                desplazamiento = (sobelYR + 3 * i * NC + 3 * j + rgb.get(argAdicional)) % tam;
+                nBytes = sobelYR + 3 * NC * i + 3 * j + rgb.get(argAdicional);
+                numPagina = nBytes / tam;
+                desplazamiento = nBytes % tam;
+                if(i == 77 && j == 117){
+                    System.out.println(sobelYR);
+                }
                 break;
             }
             default: {
