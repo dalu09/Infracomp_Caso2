@@ -57,26 +57,26 @@ public class App {
         switch (origen) {
             case "Imagen" -> {
                 numPagina = (3 * i + j + rgb.get(argAdicional)) / tam;
-                desplazamiento = (3 * i * j) - tam * numPagina;
+                desplazamiento = (3 * i * j + rgb.get(argAdicional)) % tam;
             }
             case "SOBEL_X" -> {
                 numPagina = (imagenR + 4 * i + j) / tam;
-                desplazamiento = (imagenR + 4 * i + j) - tam * numPagina;
+                desplazamiento = (imagenR + 4 * i + j) % tam;
             }
             case "SOBEL_Y" -> {
                 numPagina = (sobelXR + 4 * i + j) / tam;
-                desplazamiento = (sobelXR + 4 * i + j) - tam * numPagina;
+                desplazamiento = (sobelXR + 4 * i + j) % tam;
             }
             case "Rta" -> {
                 numPagina = (sobelYR + 3 * i + j + rgb.get(argAdicional)) / tam;
-                desplazamiento = (sobelYR + 3 * i * j) - tam * numPagina;
+                desplazamiento = (sobelYR + 3 * i * j + rgb.get(argAdicional)) % tam;
             }
             default -> {
                 return;
             }
         }
     
-        output.write(origen + "[" + i + "][" + j + argAdicional + "," + numPagina + "," + desplazamiento + "," + accion + "]\n");
+        output.write(origen + "[" + i + "][" + j + "]" + argAdicional + "," + numPagina + "," + desplazamiento + "," + accion + "\n");
     }
     
 
@@ -84,7 +84,7 @@ public class App {
         try (BufferedWriter output = new BufferedWriter(new FileWriter("referencias.txt"))) {
             int numFilas = img.alto;
             int numColumnas = img.ancho;
-            int refTotal = (numFilas - 1) * (numColumnas - 1) * 81 + (numFilas - 1) * (numColumnas - 1) * 3;
+            int refTotal = (numFilas - 2) * (numColumnas - 2) * 81 + (numFilas - 2) * (numColumnas - 2) * 3;
             final int pagsVirtuales = (72 + 6 * numFilas * numColumnas) / tamanoPagina + 1;
             
             output.write("P=" + tamanoPagina + "\n");
@@ -153,7 +153,7 @@ public class App {
                 if (contador % 10000 == 0) Thread.sleep(1);
             }
 
-            System.out.println("Simulación completada.");
+            System.out.println("Simulación completada!");
             System.out.println("Total de fallas de página: " + faultsCounter.getFaults());
             System.out.println("Total de hits: " + faultsCounter.getHits());
 
