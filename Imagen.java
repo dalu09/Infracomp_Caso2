@@ -15,7 +15,7 @@ public class Imagen {
     * almacenada en el archivo.
     * */
     public Imagen(String nombre) {
-        try (FileInputStream fis = new FileInputStream(nombre)) {
+        try (FileInputStream fis = new FileInputStream("Imagenes/" + nombre)) {
             fis.read(header);
             
             ancho = ((header[21] & 0xFF) << 24) | ((header[20] & 0xFF) << 16) |
@@ -38,9 +38,7 @@ public class Imagen {
                 }
                 fis.skip(padding);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) {}
     }
 
     /**
@@ -64,9 +62,7 @@ public class Imagen {
                 }
                 for (int k = 0; k < padding; k++) fos.write(pad);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) {}
     }
 }
 
