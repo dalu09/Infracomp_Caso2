@@ -1,10 +1,12 @@
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class App {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        Imagen imagenModificada = null;
+        Imagen imagenModificada;
 
         while (true) {
             System.out.println("Menú:");
@@ -15,27 +17,65 @@ public class App {
             int opcion = scanner.nextInt();
 
             switch (opcion) {
-                case 0:
+                case 0 -> {
                     System.out.println("Saliendo del programa.");
                     scanner.close();
                     System.exit(0);
-                    break;
-                case 1:
+                }
+                case 1 -> {
                     System.out.print("Ingrese el tamaño de página: ");
                     int tamanoPagina = scanner.nextInt();
                     System.out.print("Ingrese el nombre del archivo BMP: ");
                     String archivoImagen = scanner.next();
                     imagenModificada = new Imagen(archivoImagen);
                     crearReferencias(imagenModificada, tamanoPagina);
-                    break;
-                case 2:
+                }
+                case 2 -> {
                     System.out.print("Ingrese el número de marcos de página: ");
                     int numMarcos = scanner.nextInt();
                     System.out.print("Ingrese el nombre del archivo de referencias: ");
                     String archivoReferencias = scanner.next();
                     simularPaginacion(archivoReferencias, numMarcos);
-                    break;
+                }
             }
+        }
+    }
+
+    private static void ayuda(String origen, int i, int j, String argAdicional, String accion, int NF, int NC, int tam){
+        
+        int imagenR = 3 * NF * NC;
+        int sobelXR = imagenR + 36;
+        int sobelYR = imagenR + sobelXR + 36;
+
+        int numPagina, desplazamiento;
+
+        Map<String, Integer> rgb = new HashMap<>();
+        rgb.put(".r", 0);
+        rgb.put(".g", 1);
+        rgb.put(".b", 2);
+
+        switch (origen) {
+            case "Imagen" -> {
+                numPagina = (3 * i + j + rgb.get(argAdicional)) / tam;
+                desplazamiento = (3 * i * j) - tam * numPagina;
+                System.out.println(origen + "[" + Integer.toString(i) + "][" + Integer.toString(j) + argAdicional + "," + Integer.toString(numPagina) + "," + Integer.toString(desplazamiento) + "," + accion);
+            }
+            case "SOBEL_X" -> {
+                numPagina = (imagenR + 4 * i + j) / tam;
+                desplazamiento = (imagenR + 4 * i + j) - tam * numPagina;
+                System.out.println(origen + "[" + Integer.toString(i) + "][" + Integer.toString(j) + argAdicional + "," + Integer.toString(numPagina) + "," + Integer.toString(desplazamiento) + "," + accion);
+            }
+            case "SOBEL_Y" -> {
+                numPagina = (sobelXR + 4 * i + j) / tam;
+                desplazamiento = (sobelXR + 4 * i + j) - tam * numPagina;
+                System.out.println(origen + "[" + Integer.toString(i) + "][" + Integer.toString(j) + argAdicional + "," + Integer.toString(numPagina) + "," + Integer.toString(desplazamiento) + "," + accion);
+            }
+            case "Rta" -> {
+                numPagina = (sobelYR + 3 * i + j + rgb.get(argAdicional)) / tam;
+                desplazamiento = (sobelYR + 3 * i * j) - tam * numPagina;
+                System.out.println(origen + "[" + Integer.toString(i) + "][" + Integer.toString(j) + argAdicional + "," + Integer.toString(numPagina) + "," + Integer.toString(desplazamiento) + "," + accion);
+            }
+            default -> {}
         }
     }
 
@@ -43,96 +83,43 @@ public class App {
         try (BufferedWriter output = new BufferedWriter(new FileWriter("referencias.txt"))) {
             int numFilas = img.alto;
             int numColumnas = img.ancho;
-            int totalBytesImagen = numFilas * numColumnas * 3;
-            int totalBytesRespuesta = numFilas * numColumnas;
-            int totalBytesFiltros = 9 * 4 * 2; // Dos filtros de 3x3 enteros (4 bytes por entero)
-        
-            // Cálculo del total de referencias necesarias
-            // TODO: CALCULAR BIEN
-            int refTotal = 16 + 17 ;
-
-            int paginasImagen = (totalBytesImagen + tamanoPagina - 1) / tamanoPagina;
-            int paginasRespuesta = (totalBytesRespuesta + tamanoPagina - 1) / tamanoPagina;
-            int paginasFiltros = (totalBytesFiltros + tamanoPagina - 1) / tamanoPagina;
-            int pagsVirtuales = paginasImagen + paginasRespuesta + paginasFiltros;
-    
-            // Escribimos información inicial
+            int refTotal = (numFilas - 1) * (numColumnas - 1) * 81 + (numFilas - 1) * (numColumnas - 1) * 3;
+            final int pagsVirtuales = (72 + 6 * numFilas * numColumnas) / tamanoPagina + 1;
+            
             output.write("P=" + tamanoPagina + "\n");
             output.write("NF=" + numFilas + "\n");
             output.write("NC=" + numColumnas + "\n");
             output.write("NR=" + refTotal + "\n");
             output.write("NP=" + pagsVirtuales + "\n");
     
-            int columnaActual = 0;
-            String[] coloresRGB = {"R", "G", "B"};
-            int desplaz = 0;
-    
-            // Escribir las primeras 16 referencias ARREGLAR 
-            //TODO: Arreglar los mensajes y el orden de las referencias;
-            int contador;
-            for (contador = 0; contador < 16; contador++) {
-                String color = coloresRGB[contador % 3];
-                if (contador % 3 == 0 && contador != 0) {
-                    columnaActual++;
-                }
-                output.write("Imagen[0][" + columnaActual + "]." + color + ",0," + desplaz + ",R\n");
-                desplaz++;
-            }
-    
-            int filaActual = 0;
-            int paginaActual = 0;
-            int posEnMensaje = 0;
-            int pagMensaje = (3 * img.ancho * img.alto + tamanoPagina - 1) / tamanoPagina;
-    
-            int contadorImagen = contador;
-            int indiceMensaje = 0;
-            boolean continuar = false;
-    
-            // Escribir referencias del mensaje y colores
-            while (contador < refTotal) {
-                output.write("Mensaje[" + indiceMensaje + "]," + pagMensaje + "," + posEnMensaje + ",W\n");
-                contador++;
-                for (int i = 0; i < 16; i++) {
-                    if (continuar) {
-                        output.write("Mensaje[" + indiceMensaje + "]," + pagMensaje + "," + posEnMensaje + ",W\n");
-                        contador++;
-                        continuar = false;
-                    } else {
-                        String color = coloresRGB[contadorImagen % 3];
-                        if (contadorImagen % 3 == 0) {
-                            columnaActual++;
-                            if (columnaActual >= img.ancho) {
-                                filaActual++;
-                                columnaActual = 0;
-                            }
+            for (int i = 1; i < numFilas - 1; i++) {
+                for (int j = 1; j < numColumnas - 1; j++) {                    
+                    for (int ki = -1; ki <= 1; ki++) {
+                        for (int kj = -1; kj <= 1; kj++) {
+
+                            ayuda("Imagen", i + ki, j + kj, ".r", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda("Imagen", i + ki, j + kj, ".g", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda("Imagen", i + ki, j + kj, ".b", "R", numFilas, numColumnas, tamanoPagina);
+                    
+                            ayuda("SOBEL_X", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda("SOBEL_X", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda("SOBEL_X", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+
+                            ayuda("SOBEL_Y", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda("SOBEL_Y", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda("SOBEL_Y", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
                         }
-                        output.write("Imagen[" + filaActual + "][" + columnaActual + "]." + color + "," + paginaActual + "," + desplaz + ",R\n");
-    
-                        desplaz++;
-                        if (desplaz >= tamanoPagina) {
-                            paginaActual++;
-                            desplaz = 0;
-                        }
-                        contador++;
-                        contadorImagen++;
-                        continuar = true;
                     }
-                }
-    
-                posEnMensaje++;
-                indiceMensaje++;
-    
-                if (posEnMensaje >= tamanoPagina) {
-                    posEnMensaje = 0;
-                    pagMensaje++;
+                    
+                    ayuda("Rta", i, j, ".r", "W", numFilas, numColumnas, tamanoPagina);
+                    ayuda("Rta", i, j, ".g", "W", numFilas, numColumnas, tamanoPagina);
+                    ayuda("Rta", i, j, ".b", "W", numFilas, numColumnas, tamanoPagina);
                 }
             }
     
             System.out.println("Referencias generadas y guardadas en 'referencias.txt'.");
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) {}
     }
 
     public static void simularPaginacion(String archivoReferencias, int numMarcos) {
@@ -148,38 +135,34 @@ public class App {
             String linea;
             int contador = 0;
             while ((linea = reader.readLine()) != null) {
-                if (linea.startsWith("Imagen") || linea.startsWith("Filtro") || linea.startsWith("Respuesta")) {
+                if (linea.startsWith("Imagen") || linea.startsWith("SOBEL") || linea.startsWith("Rta")) {
                     String[] partes = linea.split(",");
                     int paginaVirtual = Integer.parseInt(partes[1]);
 
                     boolean hit = pageTable.loadPage(paginaVirtual);
+                    
                     if (hit) {
                         faultsCounter.countHit();
                     } else {
                         faultsCounter.countFault();
                     }
                 }
+
                 contador++;
-                if (contador % 10000 == 0) {
-                    Thread.sleep(1);
-                }
+                if (contador % 10000 == 0) Thread.sleep(1);
             }
 
             System.out.println("Simulación completada.");
             System.out.println("Total de fallas de página: " + faultsCounter.getFaults());
             System.out.println("Total de hits: " + faultsCounter.getHits());
 
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        } finally {
+        } catch (IOException | InterruptedException e) {} finally {
             nruThread.interrupt();
             updaterThread.interrupt();
             try {
                 nruThread.join();
                 updaterThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            } catch (InterruptedException e) {}
         }
     }
 }
