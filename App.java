@@ -41,43 +41,44 @@ public class App {
         }
     }
 
-    private static void ayuda(String origen, int i, int j, String argAdicional, String accion, int NF, int NC, int tam){
-        
+    private static void ayuda(BufferedWriter output, String origen, int i, int j, String argAdicional, String accion, int NF, int NC, int tam) throws IOException {
+    
         int imagenR = 3 * NF * NC;
         int sobelXR = imagenR + 36;
         int sobelYR = imagenR + sobelXR + 36;
-
+    
         int numPagina, desplazamiento;
-
+    
         Map<String, Integer> rgb = new HashMap<>();
         rgb.put(".r", 0);
         rgb.put(".g", 1);
         rgb.put(".b", 2);
-
+    
         switch (origen) {
             case "Imagen" -> {
                 numPagina = (3 * i + j + rgb.get(argAdicional)) / tam;
                 desplazamiento = (3 * i * j) - tam * numPagina;
-                System.out.println(origen + "[" + Integer.toString(i) + "][" + Integer.toString(j) + argAdicional + "," + Integer.toString(numPagina) + "," + Integer.toString(desplazamiento) + "," + accion);
             }
             case "SOBEL_X" -> {
                 numPagina = (imagenR + 4 * i + j) / tam;
                 desplazamiento = (imagenR + 4 * i + j) - tam * numPagina;
-                System.out.println(origen + "[" + Integer.toString(i) + "][" + Integer.toString(j) + argAdicional + "," + Integer.toString(numPagina) + "," + Integer.toString(desplazamiento) + "," + accion);
             }
             case "SOBEL_Y" -> {
                 numPagina = (sobelXR + 4 * i + j) / tam;
                 desplazamiento = (sobelXR + 4 * i + j) - tam * numPagina;
-                System.out.println(origen + "[" + Integer.toString(i) + "][" + Integer.toString(j) + argAdicional + "," + Integer.toString(numPagina) + "," + Integer.toString(desplazamiento) + "," + accion);
             }
             case "Rta" -> {
                 numPagina = (sobelYR + 3 * i + j + rgb.get(argAdicional)) / tam;
                 desplazamiento = (sobelYR + 3 * i * j) - tam * numPagina;
-                System.out.println(origen + "[" + Integer.toString(i) + "][" + Integer.toString(j) + argAdicional + "," + Integer.toString(numPagina) + "," + Integer.toString(desplazamiento) + "," + accion);
             }
-            default -> {}
+            default -> {
+                return;
+            }
         }
+    
+        output.write(origen + "[" + i + "][" + j + argAdicional + "," + numPagina + "," + desplazamiento + "," + accion + "]\n");
     }
+    
 
     public static void crearReferencias(Imagen img, int tamanoPagina) {
         try (BufferedWriter output = new BufferedWriter(new FileWriter("referencias.txt"))) {
@@ -97,23 +98,23 @@ public class App {
                     for (int ki = -1; ki <= 1; ki++) {
                         for (int kj = -1; kj <= 1; kj++) {
 
-                            ayuda("Imagen", i + ki, j + kj, ".r", "R", numFilas, numColumnas, tamanoPagina);
-                            ayuda("Imagen", i + ki, j + kj, ".g", "R", numFilas, numColumnas, tamanoPagina);
-                            ayuda("Imagen", i + ki, j + kj, ".b", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda(output, "Imagen", i + ki, j + kj, ".r", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda(output, "Imagen", i + ki, j + kj, ".g", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda(output, "Imagen", i + ki, j + kj, ".b", "R", numFilas, numColumnas, tamanoPagina);
                     
-                            ayuda("SOBEL_X", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
-                            ayuda("SOBEL_X", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
-                            ayuda("SOBEL_X", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda(output, "SOBEL_X", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda(output, "SOBEL_X", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda(output, "SOBEL_X", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
 
-                            ayuda("SOBEL_Y", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
-                            ayuda("SOBEL_Y", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
-                            ayuda("SOBEL_Y", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda(output, "SOBEL_Y", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda(output, "SOBEL_Y", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
+                            ayuda(output, "SOBEL_Y", ki + 1, kj + 1, "", "R", numFilas, numColumnas, tamanoPagina);
                         }
                     }
                     
-                    ayuda("Rta", i, j, ".r", "W", numFilas, numColumnas, tamanoPagina);
-                    ayuda("Rta", i, j, ".g", "W", numFilas, numColumnas, tamanoPagina);
-                    ayuda("Rta", i, j, ".b", "W", numFilas, numColumnas, tamanoPagina);
+                    ayuda(output, "Rta", i, j, ".r", "W", numFilas, numColumnas, tamanoPagina);
+                    ayuda(output, "Rta", i, j, ".g", "W", numFilas, numColumnas, tamanoPagina);
+                    ayuda(output, "Rta", i, j, ".b", "W", numFilas, numColumnas, tamanoPagina);
                 }
             }
     
