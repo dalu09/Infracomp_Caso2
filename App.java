@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.HashMap;
+import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -135,7 +136,7 @@ public class App {
         PageTable pageTable = new PageTable(numMarcos);
         FaultsCounter faultsCounter = new FaultsCounter();
         NRUThread nruThread = new NRUThread(pageTable);
-        UpdaterThread updaterThread = new UpdaterThread(pageTable);
+        UpdaterThread updaterThread = new UpdaterThread(pageTable, archivoReferencias);
 
         nruThread.start();
         updaterThread.start();

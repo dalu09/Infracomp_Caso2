@@ -8,26 +8,53 @@ public class UpdaterThread extends Thread {
     private long tiempoTotal = 0;
     private int NR = 0;
 
-    public UpdaterThread(PageTable pageTable) {
+    public UpdaterThread(PageTable pageTable, String refFile) {
         this.pageTable = pageTable;
+        this.refFile = refFile;
     }
 
     public void run() {
+        if (refFile == null || refFile.isEmpty()) {
+            System.err.println("Error: La ruta del archivo de referencias no puede ser null o vacía.");
+            return;
+        }
+
         try (BufferedReader br = new BufferedReader(new FileReader(refFile))) {
             String line;
             while ((line = br.readLine()) != null) {
-                int page = Integer.parseInt(line.trim());
-                synchronized (pageTable) {
-                    boolean hit = pageTable.loadPage(page);
-                    tiempoTotal += hit ? 50 : 10_000_000;
+                if (Thread.currentThread().isInterrupted()) {
+                    break; // Sale del bucle si el hilo ha sido interrumpido
                 }
-                NR++;
-                Thread.sleep(1);
+    
+                line = line.trim();
+                if (line.contains("=")) {
+                    continue;
+                }
+    
+                String[] partes = line.split(",");
+                if (partes.length < 2) {
+                    System.err.println("Formato incorrecto en línea: " + line);
+                    continue;
+                }
+    
+                try {
+                    int page = Integer.parseInt(partes[1].trim()); // Número de página
+                    synchronized (pageTable) {
+                        boolean hit = pageTable.loadPage(page);
+                        tiempoTotal += hit ? 50 : 10_000_000;
+                    }
+                    NR++;
+                    Thread.sleep(1); 
+                } catch (NumberFormatException e) {
+                    System.err.println("Error al leer la página en línea: " + line);
+                }
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); 
         }
-    }
+    }       
 
     public int getNR() {
         return NR;
