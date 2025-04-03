@@ -80,9 +80,6 @@ public class App {
                 nBytes = sobelYR + 3 * NC * i + 3 * j + rgb.get(argAdicional);
                 numPagina = nBytes / tam;
                 desplazamiento = nBytes % tam;
-                if(i == 77 && j == 117){
-                    System.out.println(sobelYR);
-                }
                 break;
             }
             default: {
