@@ -142,14 +142,14 @@ public class App {
         Tabla tabla = new Tabla(numMarcos);
 
         Lector lector = new Lector(tabla, archivoReferencias);
-        NRUUpdater updater = new NRUUpdater(tabla);
+        Actualizador actualizador = new Actualizador(tabla);
 
         lector.start();
-        updater.start();
+        actualizador.start();
 
         try {
             lector.join();
-            updater.interrupt();
+            actualizador.interrupt();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
