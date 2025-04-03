@@ -1,6 +1,5 @@
 import java.io.*;
 import java.util.HashMap;
-import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -141,45 +140,18 @@ public class App {
     
     public static void simularPaginacion(String archivoReferencias, int numMarcos) {
         PageTable pageTable = new PageTable(numMarcos);
-        FaultsCounter faultsCounter = new FaultsCounter();
-        NRUThread nruThread = new NRUThread(pageTable);
-        UpdaterThread updaterThread = new UpdaterThread(pageTable, archivoReferencias);
 
-        nruThread.start();
-        updaterThread.start();
+        Lector lector = new Lector(pageTable, archivoReferencias);
+        NRUUpdater updater = new NRUUpdater(pageTable);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(archivoReferencias))) {
-            String linea;
-            int contador = 0;
-            while ((linea = reader.readLine()) != null) {
-                if (linea.startsWith("Imagen") || linea.startsWith("SOBEL") || linea.startsWith("Rta")) {
-                    String[] partes = linea.split(",");
-                    int paginaVirtual = Integer.parseInt(partes[1]);
+        lector.start();
+        updater.start();
 
-                    boolean hit = pageTable.loadPage(paginaVirtual);
-                    
-                    if (hit) {
-                        faultsCounter.countHit();
-                    } else {
-                        faultsCounter.countFault();
-                    }
-                }
-
-                contador++;
-                if (contador % 10000 == 0) Thread.sleep(1);
-            }
-
-            System.out.println("Simulación completada!");
-            System.out.println("Total de fallas de página: " + faultsCounter.getFaults());
-            System.out.println("Total de hits: " + faultsCounter.getHits());
-
-        } catch (IOException | InterruptedException e) {} finally {
-            nruThread.interrupt();
-            updaterThread.interrupt();
-            try {
-                nruThread.join();
-                updaterThread.join();
-            } catch (InterruptedException e) {}
+        try {
+            lector.join();
+            updater.interrupt();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

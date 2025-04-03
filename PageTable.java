@@ -1,68 +1,68 @@
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
-public class PageTable {
-    private HashMap<Integer, Page> pagesTable = new HashMap<>();
-    private ArrayList<Integer> frames = new ArrayList<>();
-    private int maxFrames;
+class PageTable {
+    private final int numFrames;
+    private final Map<Integer, Page> pageTable;
+    private final Queue<Integer> frameQueue;
 
-    public PageTable(int maxFrames) {
-        this.maxFrames = maxFrames;
+    public PageTable(int numFrames) {
+        this.numFrames = numFrames;
+        this.pageTable = new HashMap<>();
+        this.frameQueue = new LinkedList<>();
     }
 
-    class Page {
-        boolean referenced;
-        boolean modified;
-
-        Page() {
-            referenced = false;
-            modified = false;
-        }
-    }
-
-    public synchronized boolean loadPage(int page) {
-        if (pagesTable.containsKey(page)) {
-            Page currentPage = pagesTable.get(page);
-            currentPage.referenced = true;
+    public synchronized boolean loadPage(int virtualPage) {
+        if (pageTable.containsKey(virtualPage)) {
+            Page page = pageTable.get(virtualPage);
+            page.referenced = true;
             return true;
         } else {
-            if (frames.size() < maxFrames) {
-                frames.add(page);
-                pagesTable.put(page, new Page());
-            } else {
-                replacePage(page);
+            if (pageTable.size() >= numFrames) {
+                replacePage();
             }
+            Page newPage = new Page(virtualPage);
+            pageTable.put(virtualPage, newPage);
+            frameQueue.add(virtualPage);
             return false;
         }
     }
 
-    public synchronized void replacePage(int page) {
-        int paginaReemplazar = selectPageToReplace();
-        frames.set(frames.indexOf(paginaReemplazar), page);
-        pagesTable.put(page, new Page());
-        pagesTable.remove(paginaReemplazar);
+    private synchronized void replacePage() {
+        int pageToReplace = nruReplacement();
+        pageTable.remove(pageToReplace);
+        frameQueue.remove(pageToReplace);
     }
 
-    public synchronized void categorizePages() {
-        for (Integer page : pagesTable.keySet()) {
-            Page p = pagesTable.get(page);
-            p.referenced = false;
-        }
-    }
-
-    public synchronized int selectPageToReplace() {
-        Integer mejorOpcion = null;
-        int mejorClase = 5;
-
-        for (Integer page : frames) {
-            Page p = pagesTable.get(page);
-            int clase = (p.referenced ? 2 : 0) + (p.modified ? 1 : 0);
-
-            if (clase < mejorClase) {
-                mejorClase = clase;
-                mejorOpcion = page;
+    private synchronized int nruReplacement() {
+        Integer candidate = null;
+        for (int pageId : frameQueue) {
+            Page page = pageTable.get(pageId);
+            if (!page.referenced && !page.modified) {
+                return pageId;
+            }
+            if (!page.referenced && page.modified && candidate == null) {
+                candidate = pageId;
             }
         }
-        return mejorOpcion;
+        
+        return candidate != null ? candidate : frameQueue.peek();
+    }
+
+    public synchronized void resetReferencedBits() {
+        for (Page page : pageTable.values()) {
+            page.referenced = false;
+        }
+    }
+}
+
+class Page {
+    int id;
+    boolean referenced;
+    boolean modified;
+
+    public Page(int id) {
+        this.id = id;
+        this.referenced = true;
+        this.modified = Math.random() > 0.5;
     }
 }
