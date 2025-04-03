@@ -13,8 +13,6 @@ class Lector extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Procesador iniciado. Leyendo archivo...");
-
         try (BufferedReader reader = new BufferedReader(new FileReader(archivoReferencias))) {
             String linea;
             int contador = 0;
@@ -22,9 +20,9 @@ class Lector extends Thread {
                 if (linea.startsWith("Imagen") || linea.startsWith("SOBEL") || linea.startsWith("Rta")) {
                     String[] partes = linea.split(",");
 
-                    int paginaVirtual = Integer.parseInt(partes[1]);
+                    int pagina = Integer.parseInt(partes[1]);
 
-                    boolean hit = pageTable.loadPage(paginaVirtual, partes[3]);
+                    boolean hit = pageTable.loadPage(pagina, partes[3]);
                     if (hit) {
                         hits++;
                     } else {
@@ -41,6 +39,6 @@ class Lector extends Thread {
             e.printStackTrace();
         }
 
-        System.out.println("Finalizado. Hits: " + hits + ", Fallos: " + fallos);
+        System.out.println("# de hits: " + hits + ", # de fallos: " + fallos);
     }
 }
