@@ -1,13 +1,13 @@
 import java.io.*;
 
 class Lector extends Thread {
-    private final PageTable pageTable;
+    private final Tabla tabla;
     private final String archivoReferencias;
     private int hits = 0;
     private int fallos = 0;
 
-    public Lector(PageTable pageTable, String archivoReferencias) {
-        this.pageTable = pageTable;
+    public Lector(Tabla tabla, String archivoReferencias) {
+        this.tabla = tabla;
         this.archivoReferencias = archivoReferencias;
     }
 
@@ -22,7 +22,7 @@ class Lector extends Thread {
 
                     int pagina = Integer.parseInt(partes[1]);
 
-                    boolean hit = pageTable.loadPage(pagina, partes[3]);
+                    boolean hit = tabla.cargarPagina(pagina, partes[3]);
                     if (hit) {
                         hits++;
                     } else {

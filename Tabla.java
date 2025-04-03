@@ -1,17 +1,17 @@
 import java.util.*;
 
 class Tabla {
-    private final int numFrames;
+    private final int nMarcos;
     private final Map<Integer, Page> tabla;
-    private final Queue<Integer> frameQueue;
+    private final Queue<Integer> marcos;
 
-    public Tabla(int numFrames) {
-        this.numFrames = numFrames;
+    public Tabla(int nMarcos) {
+        this.nMarcos = nMarcos;
         this.tabla = new HashMap<>();
-        this.frameQueue = new LinkedList<>();
+        this.marcos = new LinkedList<>();
     }
 
-    public synchronized boolean loadPage(int virtualPage, String accion) {
+    public synchronized boolean cargarPagina(int virtualPage, String accion) {
         if (tabla.containsKey(virtualPage)) {
             
             Page page = tabla.get(virtualPage);
@@ -20,8 +20,8 @@ class Tabla {
             return true;
         
         } else {
-            if (tabla.size() >= numFrames) {
-                replacePage();
+            if (tabla.size() >= nMarcos) {
+                reemplazar();
             }
 
             Page newPage;
@@ -32,34 +32,34 @@ class Tabla {
             }
 
             tabla.put(virtualPage, newPage);
-            frameQueue.add(virtualPage);
+            marcos.add(virtualPage);
         
             return false;
         }
     }
 
-    private synchronized void replacePage() {
-        int pageToReplace = nruReplacement();
+    private synchronized void reemplazar() {
+        int pageToReplace = nru();
         tabla.remove(pageToReplace);
-        frameQueue.remove(pageToReplace);
+        marcos.remove(pageToReplace);
     }
 
-    private synchronized int nruReplacement() {
-        Integer candidate = null;
+    private synchronized int nru() {
+        Integer candidato = null;
         
-        for (int pageId : frameQueue) {
+        for (int pageId : marcos) {
             Page page = tabla.get(pageId);
         
             if(!page.r && !page.m) {
                 return pageId;
             }
         
-            if(!page.r && page.m && candidate == null) {
-                candidate = pageId;
+            if(!page.r && page.m && candidato == null) {
+                candidato = pageId;
             }
         }
         
-        return candidate != null ? candidate : frameQueue.peek();
+        return candidato != null ? candidato : marcos.peek();
     }
 
     public synchronized void resetReferencedBits() {

@@ -1,8 +1,8 @@
 class NRUUpdater extends Thread {
-    private final PageTable pageTable;
+    private final Tabla tabla;
 
-    public NRUUpdater(PageTable pageTable) {
-        this.pageTable = pageTable;
+    public NRUUpdater(Tabla tabla) {
+        this.tabla = tabla;
     }
 
     @Override
@@ -13,7 +13,7 @@ class NRUUpdater extends Thread {
             } catch (InterruptedException ex) {
             }
             try {
-                pageTable.resetReferencedBits();
+                tabla.resetReferencedBits();
             } catch (Exception ex) {
                 System.out.println("Error in resetReferencedBits: " + ex.getMessage());
                 ex.printStackTrace();

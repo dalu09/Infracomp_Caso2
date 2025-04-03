@@ -139,10 +139,10 @@ public class App {
     }
     
     public static void simularPaginacion(String archivoReferencias, int numMarcos) {
-        PageTable pageTable = new PageTable(numMarcos);
+        Tabla tabla = new Tabla(numMarcos);
 
-        Lector lector = new Lector(pageTable, archivoReferencias);
-        NRUUpdater updater = new NRUUpdater(pageTable);
+        Lector lector = new Lector(tabla, archivoReferencias);
+        NRUUpdater updater = new NRUUpdater(tabla);
 
         lector.start();
         updater.start();
