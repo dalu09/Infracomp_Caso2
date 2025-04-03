@@ -19,7 +19,6 @@ class Lector extends Thread {
             String linea;
             int contador = 0;
             while ((linea = reader.readLine()) != null) {
-                System.out.println("Leyendo línea: " + linea);
                 if (linea.startsWith("Imagen") || linea.startsWith("SOBEL") || linea.startsWith("Rta")) {
                     String[] partes = linea.split(",");
 
@@ -28,13 +27,9 @@ class Lector extends Thread {
                     boolean hit = pageTable.loadPage(paginaVirtual, partes[3]);
                     if (hit) {
                         hits++;
-                        System.out.println("HIT: Página " + paginaVirtual);
                     } else {
                         fallos++;
-                        System.out.println("FALLO: Página " + paginaVirtual);
                     }
-
-                    System.out.println("HOAKAKLAA");
 
                     contador++;
                     if (contador % 10000 == 0) {
