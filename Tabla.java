@@ -11,10 +11,10 @@ class Tabla {
         this.marcos = new LinkedList<>();
     }
 
-    public synchronized boolean cargarPagina(int virtualPage, String accion) {
-        if (tabla.containsKey(virtualPage)) {
+    public synchronized boolean cargarPagina(int pagina, String accion) {
+        if (tabla.containsKey(pagina)) {
             
-            Page page = tabla.get(virtualPage);
+            Page page = tabla.get(pagina);
             page.r = true;
             
             return true;
@@ -26,13 +26,13 @@ class Tabla {
 
             Page newPage;
             if(accion.equals("R")){
-                newPage = new Page(virtualPage, false);
+                newPage = new Page(pagina, false);
             } else {
-                newPage = new Page(virtualPage, true);
+                newPage = new Page(pagina, true);
             }
 
-            tabla.put(virtualPage, newPage);
-            marcos.add(virtualPage);
+            tabla.put(pagina, newPage);
+            marcos.add(pagina);
         
             return false;
         }
@@ -62,7 +62,7 @@ class Tabla {
         return candidato != null ? candidato : marcos.peek();
     }
 
-    public synchronized void resetReferencedBits() {
+    public synchronized void resetear() {
         for (Page page : tabla.values()) {
             page.r = false;
         }

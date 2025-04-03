@@ -13,7 +13,7 @@ class Actualizador extends Thread {
             } catch (InterruptedException e) {
             }
             try {
-                tabla.resetReferencedBits();
+                tabla.resetear();
             } catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
