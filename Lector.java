@@ -25,7 +25,7 @@ class Lector extends Thread {
 
                     int paginaVirtual = Integer.parseInt(partes[1]);
 
-                    boolean hit = pageTable.loadPage(paginaVirtual);
+                    boolean hit = pageTable.loadPage(paginaVirtual, partes[3]);
                     if (hit) {
                         hits++;
                         System.out.println("HIT: Página " + paginaVirtual);

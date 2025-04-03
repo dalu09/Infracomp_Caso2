@@ -11,7 +11,7 @@ class PageTable {
         this.frameQueue = new LinkedList<>();
     }
 
-    public synchronized boolean loadPage(int virtualPage) {
+    public synchronized boolean loadPage(int virtualPage, String accion) {
         if (pageTable.containsKey(virtualPage)) {
             Page page = pageTable.get(virtualPage);
             page.referenced = true;
@@ -20,7 +20,14 @@ class PageTable {
             if (pageTable.size() >= numFrames) {
                 replacePage();
             }
-            Page newPage = new Page(virtualPage);
+
+            Page newPage;
+            if(accion.equals("R")){
+                newPage = new Page(virtualPage, false);
+            } else {
+                newPage = new Page(virtualPage, true);
+            }
+            
             pageTable.put(virtualPage, newPage);
             frameQueue.add(virtualPage);
             return false;
@@ -60,9 +67,9 @@ class Page {
     boolean referenced;
     boolean modified;
 
-    public Page(int id) {
+    public Page(int id, boolean m) {
         this.id = id;
         this.referenced = true;
-        this.modified = Math.random() > 0.5;
+        this.modified = m;
     }
 }
